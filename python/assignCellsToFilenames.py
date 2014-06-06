@@ -1,5 +1,7 @@
+#this script is used to build one table for each confocal image. the table has the filename of the orig image\
+# and contains x and y positions of all positive cells in this image
+
 import pandas as pd
-import sys
 import sys
 #sys.path.append("/Volumes/moehlc/idaf_library/lib idaf")
 sys.path.append("/mnt/moehlc/home/idaf_library/")
