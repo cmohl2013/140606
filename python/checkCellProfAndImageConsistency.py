@@ -27,7 +27,7 @@ for imfile in imfiles:
 
 if len(badImfiles)>0:
 	print('found following images without result file:')
-	print(badImfiles)
+	print(pd.Series(badImfiles))
 else:
 	print('check for images is consistent: each image has exactly one csv file')	
 
@@ -36,15 +36,15 @@ else:
 print('..test csvs...\\')
 badCsv = []
 for csvfile in csvfiles:
-	imCnd = io.getFilelistFromDir(imfolder,['.tif',csvfile.replace('.csv','')])
-	if len(imCnd) != 3:
+	imCnd = io.getFilelistFromDir(imfolder,['.tif',csvfile.replace('.csv','')],avoidpattern = ['_C3'])
+	if len(imCnd) != 2:
 		badCsv.append(csvfile)
 		print('achtung: files for '+csvfile + ':')
 		print(imCnd)
 
 if len(badCsv)>0:
 	print('found following csvs without image file:')
-	print(badCsv)
+	print(pd.Series(badCsv))
 else:
 	print('check for csvs is consistent: each csv has exactly 3 image files')
 
