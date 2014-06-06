@@ -15,7 +15,10 @@ def getNamesByNr(folder):
 	numbersAndNames = [] 
 	for fileTiff in filesTiff:
 		fileNr = int(fileTiff[0:3])
-		fileName = fileTiff[4:]
+		fileName = fileTiff[4:]\
+		.replace('_convOverlay','')\
+		.replace('_conv_cy3higherOverlay','')\
+		.replace('.tiff','')
 		numbersAndNames.append((fileNr,fileName))
 	#sort by number
 	numbersAndNames = sorted(numbersAndNames, key = lambda x: x[0])
@@ -27,8 +30,14 @@ def getNamesByNr(folder):
 
 
 def getCellProfilerDataByNr(folder,namesByNr):
+	
+	#raise Exception("hi")
 	# load cell profiler data 
-	celldatname = folder + '/DefaultOUT_SingleCellsInfected.csv'
+	fname = io.getFilelistFromDir(folder,['DefaultOUT_','_SingleCellsInfected','.csv'])
+	if len(fname) != 1:
+		print ('no cellprofiler data found for '+ folder)
+		return
+	celldatname = folder + '/' + fname[0]
 	dat = pd.read_csv(celldatname)
 	dat = dat[['ImageNumber','AreaShape_Center_X','AreaShape_Center_Y']]
 	dat.columns = ['imNr','x','y'] # clean data table
@@ -38,6 +47,7 @@ def getCellProfilerDataByNr(folder,namesByNr):
 
 	datByNr = {}  # dict of dataframes, keyed by image number
 
+
 	for nr in posImNrs:
 		datsel = dat[dat['imNr'] == nr]
 		datsel.insert(3,'filename',namesByNr[nr])
@@ -46,12 +56,30 @@ def getCellProfilerDataByNr(folder,namesByNr):
 	return datByNr	
 
 
-rootfolder = '/mnt/moehlc/idaf/IDAF_Projects/140507_hanna_gags_dataIntegration/data/cellProfiler'
-savefolder = '/mnt/moehlc/idaf/IDAF_Projects/140507_hanna_gags_dataIntegration/data/glueImageCellprofiler'
+def exportGlueTables(savefolder,namesByNr,datByNr):
+	try:
+		os.makedirs(savefolder)
+	except:
+		print('folder ' + savefolder + ' already exists')	
 
-folders = io.getFilelistFromDir(rootfolder,'V')
-folder = folders[3]
+	for key in datByNr:
+		savename = savefolder + '/' + namesByNr[key] + '.csv'
+		datByNr[key].to_csv(savename) 
 
 
-namesByNr = getNamesByNr(rootfolder + '/' + folder)
-datByNr = getCellProfilerDataByNr(rootfolder + '/' + folder,namesByNr)
+
+if __name__ == '__main__':
+
+
+	rootfolder = '/mnt/moehlc/idaf/IDAF_Projects/140507_hanna_gags_dataIntegration/data/cellProfiler'
+	savefolder = '/mnt/moehlc/idaf/IDAF_Projects/140507_hanna_gags_dataIntegration/data/glueImageCellprofiler'
+
+	#greate a table for each image file, containing centroid positions of positive cells 
+	folders = io.getFilelistFromDir(rootfolder,'V')
+	for folder in folders:
+	#folder = folders[5]
+		namesByNr = getNamesByNr(rootfolder + '/' + folder)
+		datByNr = getCellProfilerDataByNr(rootfolder + '/' + folder,namesByNr)
+		exportGlueTables(savefolder,namesByNr,datByNr)
+
+
